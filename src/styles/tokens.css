@@ -1,0 +1,35 @@
+:root {
+  /* domain identity */
+  --cog: #4c6ef5;
+  --cog-soft: #eaf0ff;
+  --cog-ink: #2746b8;
+  --noncog: #ff7a66;
+  --noncog-soft: #ffede7;
+  --noncog-ink: #c5432f;
+  --quest: #6c5ce7;
+  --quest-soft: #eeecfd;
+
+  --sun: #ffc24b;
+  --mint: #2fbf9e;
+  --grape: #9a6de0;
+  --wrong: #f26d6d;
+
+  /* surfaces */
+  --ink: #2c2b44;
+  --muted: #8e8ca8;
+  --bg: #f5f3fb;
+  --card: #ffffff;
+  --sub: #f5f3fb;
+  --hair: rgba(44, 43, 68, 0.1);
+  --shadow-sm: 0 2px 8px rgba(44, 43, 68, 0.08);
+  --shadow: 0 14px 34px -16px rgba(44, 43, 68, 0.35);
+
+  /* type scale */
+  --font: 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic',
+    system-ui, sans-serif;
+
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+}
