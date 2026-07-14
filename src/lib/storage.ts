@@ -1,6 +1,6 @@
 import type { AppData, AreaId, ChildProfile, ChildState, Level } from '../types';
 import { AREAS } from '../data/curriculum';
-import { defaultLevelForAge } from './levels';
+import { defaultLevelForAge, recommendedDaily } from './levels';
 
 const KEY = 'elem-prep-app/v1';
 
@@ -42,7 +42,7 @@ export function makeChild(name: string, age: number, avatarEmoji: string): Child
   return {
     profile,
     progress: { completedActivityIds: [], starsByArea: emptyStars() },
-    goal: { mode: 'count', target: age <= 5 ? 3 : 4, autonomy: 1 },
+    goal: { mode: 'count', target: recommendedDaily(age).count, autonomy: 1 },
     logs: [],
   };
 }

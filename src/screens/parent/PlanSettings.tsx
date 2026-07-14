@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import AppShell from '../../components/AppShell';
 import { AUTONOMY_STAGES, autonomyReadyToAdvance } from '../../lib/autonomy';
+import { recommendedDaily } from '../../lib/levels';
 import type { Autonomy, GoalMode } from '../../types';
 
 const AUTONOMY_KEYS: Autonomy[] = [1, 2, 3];
@@ -18,7 +19,8 @@ export default function PlanSettings() {
 
   function setMode(mode: GoalMode) {
     if (mode === goal.mode) return;
-    setGoal({ mode, target: mode === 'count' ? (age <= 5 ? 3 : 4) : age <= 5 ? 10 : 15 });
+    const rec = recommendedDaily(age);
+    setGoal({ mode, target: mode === 'count' ? rec.count : rec.minutes });
   }
 
   function bump(delta: number) {
@@ -29,9 +31,10 @@ export default function PlanSettings() {
     }
   }
 
+  const rec = recommendedDaily(age);
   const recommend = isCount
-    ? `권장: 만 ${age}세 하루 ${age <= 5 ? 3 : 4}개`
-    : `권장: 만 ${age}세 하루 ${age <= 5 ? 10 : 15}분`;
+    ? `권장: 만 ${age}세 하루 ${rec.count}개`
+    : `권장: 만 ${age}세 하루 ${rec.minutes}분`;
 
   return (
     <AppShell nav="parent">
