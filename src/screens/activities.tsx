@@ -10,17 +10,18 @@ interface RProps {
 }
 
 // ---------- shared prompt with TTS ----------
-function Prompt({ text, domain }: { text: string; domain: Domain }) {
+function Prompt({ text, domain, speakText }: { text: string; domain: Domain; speakText?: string }) {
+  const say = speakText ?? text;
   useEffect(() => {
-    speak(text);
+    speak(say);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text]);
+  }, [say]);
   const noncog = domain === 'noncognitive';
   return (
     <div className={`prompt${noncog ? ' prompt--noncog' : ''}`}>
       <button
         className={`prompt__spk${noncog ? ' prompt__spk--noncog' : ''}`}
-        onClick={() => speak(text)}
+        onClick={() => speak(say)}
         aria-label="문제 읽어주기"
       >
         🔊
@@ -28,6 +29,26 @@ function Prompt({ text, domain }: { text: string; domain: Domain }) {
       <p>{text}</p>
     </div>
   );
+}
+
+// progress "문제 i / N"
+function QProgress({ i, n }: { i: number; n: number }) {
+  return (
+    <div className="q-progress" aria-label={`문제 ${i} / ${n}`}>
+      <span>
+        문제 {i} <b>/ {n}</b>
+      </span>
+      <div className="q-progress__bar">
+        {Array.from({ length: n }, (_, k) => (
+          <i key={k} className={k < i ? 'filled' : ''} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function starsFromWrong(wrong: number): number {
+  return wrong === 0 ? 3 : wrong <= 2 ? 2 : 1;
 }
 
 function Feedback({ good, children }: { good: boolean; children: ReactNode }) {
@@ -47,25 +68,36 @@ function shuffled<T>(arr: T[]): T[] {
   return a;
 }
 
-// ---------- choice / reading / scenario ----------
+// ---------- choice / reading / scenario (multi-question set) ----------
 function ChoiceActivity({ activity, domain, onComplete }: RProps) {
+  const questions = activity.questions ?? [];
+  const [qIndex, setQIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
-  const [attempts, setAttempts] = useState(0);
-  const options = activity.options ?? [];
-  const solvedIndex = options.findIndex((o) => o.correct);
-  const isNumeric = options.every((o) => /^\d+$/.test(o.label.trim()));
-  const scenario = activity.type === 'scenario';
+  const [wrongTotal, setWrongTotal] = useState(0);
 
-  const correctPicked = picked != null && options[picked]?.correct;
+  const q = questions[qIndex];
+  const scenario = activity.type === 'scenario';
+  const isNumeric = q.options.every((o) => /^\d+$/.test(o.label.trim()));
+  const correctPicked = picked != null && q.options[picked]?.correct;
+  const isLast = qIndex === questions.length - 1;
 
   function choose(i: number) {
     if (correctPicked) return;
     setPicked(i);
-    if (options[i].correct) {
+    if (q.options[i].correct) {
       playCorrect();
     } else {
       playWrong();
-      setAttempts((a) => a + 1);
+      setWrongTotal((w) => w + 1);
+    }
+  }
+
+  function advance() {
+    if (isLast) {
+      onComplete(starsFromWrong(wrongTotal));
+    } else {
+      setQIndex((n) => n + 1);
+      setPicked(null);
     }
   }
 
@@ -80,16 +112,19 @@ function ChoiceActivity({ activity, domain, onComplete }: RProps) {
     return c;
   }
 
-  const stars = attempts === 0 ? 3 : attempts === 1 ? 2 : 1;
-
   return (
     <div className="stack">
-      <Prompt text={activity.prompt} domain={domain} />
-      {activity.passage && <div className="passage">{activity.passage}</div>}
-      {activity.visual && <div className="visual">{activity.visual}</div>}
+      <QProgress i={qIndex + 1} n={questions.length} />
+      <Prompt
+        text={q.prompt}
+        domain={domain}
+        speakText={q.passage ? `${q.passage} ${q.prompt}` : q.prompt}
+      />
+      {q.passage && <div className="passage">{q.passage}</div>}
+      {q.visual && <div className="visual">{q.visual}</div>}
 
-      <div className={`option-grid${isNumeric && options.length === 4 ? ' option-grid--2' : ''}`}>
-        {options.map((o, i) => (
+      <div className={`option-grid${isNumeric && q.options.length === 4 ? ' option-grid--2' : ''}`}>
+        {q.options.map((o, i) => (
           <button key={i} className={optionClass(i, o)} onClick={() => choose(i)}>
             {o.label}
           </button>
@@ -100,7 +135,7 @@ function ChoiceActivity({ activity, domain, onComplete }: RProps) {
         (correctPicked ? (
           <Feedback good>
             {scenario ? '멋진 생각이에요! 💛' : '잘했어요! 딩동댕 🔔'}
-            {scenario && activity.encouragement ? ` ${activity.encouragement}` : ''}
+            {scenario && q.encouragement ? ` ${q.encouragement}` : ''}
           </Feedback>
         ) : (
           <Feedback good={false}>
@@ -111,9 +146,9 @@ function ChoiceActivity({ activity, domain, onComplete }: RProps) {
       <button
         className={`btn btn--block btn--lg ${domain === 'noncognitive' ? 'btn--noncog' : ''}`}
         disabled={!correctPicked}
-        onClick={() => onComplete(stars)}
+        onClick={advance}
       >
-        {correctPicked ? '다음으로 →' : `정답을 골라요 (${solvedIndex >= 0 ? '보기 중 하나' : ''})`}
+        {!correctPicked ? '정답을 골라요' : isLast ? '완료하기 🎉' : '다음 문제 →'}
       </button>
     </div>
   );
@@ -375,8 +410,149 @@ function ChecklistActivity({ activity, domain, onComplete }: RProps) {
   );
 }
 
+// ---------- tenframe: 20칸 수배열판 "10 만들기" 덧셈 ----------
+function optionsForSum(total: number): Option[] {
+  const set = new Set<number>([total]);
+  const candidates = [total - 1, total + 1, total - 2, total + 2, total + 3];
+  for (const c of candidates) {
+    if (set.size >= 4) break;
+    if (c > 0) set.add(c);
+  }
+  const arr = shuffled([...set]).slice(0, 4);
+  if (!arr.includes(total)) arr[0] = total;
+  return shuffled(arr).map((n) => ({ label: String(n), correct: n === total }));
+}
+
+function TenFrameActivity({ activity, onComplete }: RProps) {
+  const sums = activity.sums ?? [];
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState<'place' | 'made' | 'answered'>('place');
+  const [picked, setPicked] = useState<number | null>(null);
+  const [wrongTotal, setWrongTotal] = useState(0);
+  const [options, setOptions] = useState<Option[]>([]);
+
+  const { a, b } = sums[idx];
+  const need = Math.max(0, 10 - a); // 윗줄을 채우는 데 필요한 수
+  const moved = Math.min(need, b); // 아랫줄에서 윗줄로 옮기는 수
+  const topCount = phase === 'place' ? a : a + moved; // 윗줄 채워진 칸 수
+  const bottomCount = phase === 'place' ? b : b - moved; // 아랫줄 남은 칸 수
+  const total = a + b;
+  const isLast = idx === sums.length - 1;
+
+  function makeTen() {
+    setPhase('made');
+    setOptions(optionsForSum(total));
+  }
+  function choose(n: number) {
+    if (phase !== 'made') return;
+    setPicked(n);
+    if (n === total) {
+      playCorrect();
+      setPhase('answered');
+    } else {
+      playWrong();
+      setWrongTotal((w) => w + 1);
+    }
+  }
+  function advance() {
+    if (isLast) {
+      onComplete(starsFromWrong(wrongTotal));
+    } else {
+      setIdx((n) => n + 1);
+      setPhase('place');
+      setPicked(null);
+    }
+  }
+
+  // top row cell kind: 'a' (원래 윗줄), 'moved' (아랫줄에서 올라온 수), '' (빈칸)
+  function topKind(i: number): string {
+    if (i < a) return 'tf--a';
+    if (i < topCount) return 'tf--moved';
+    return '';
+  }
+
+  return (
+    <div className="stack">
+      <QProgress i={idx + 1} n={sums.length} />
+      <Prompt
+        text={
+          phase === 'place'
+            ? `${a} 더하기 ${b}. 윗줄을 먼저 10으로 채워요.`
+            : `10 하고 ${bottomCount}은 모두 몇일까요?`
+        }
+        domain="cognitive"
+      />
+
+      <div className="tenframe" role="img" aria-label={`${a} 더하기 ${b}`}>
+        <div className="tenframe__row">
+          {Array.from({ length: 10 }, (_, i) => (
+            <span key={i} className={`tf-cell ${topKind(i)}`} />
+          ))}
+        </div>
+        <div className="tenframe__row">
+          {Array.from({ length: 10 }, (_, i) => (
+            <span key={i} className={`tf-cell ${i < bottomCount ? 'tf--b' : ''}`} />
+          ))}
+        </div>
+      </div>
+
+      <div className="tf-eq">
+        {phase === 'place' ? (
+          <>
+            {a} <span className="tf-op">+</span> {b} <span className="tf-op">=</span> ?
+          </>
+        ) : (
+          <>
+            <b>10</b> <span className="tf-op">+</span> <b>{bottomCount}</b>{' '}
+            <span className="tf-op">=</span> ?
+          </>
+        )}
+      </div>
+
+      {phase === 'place' ? (
+        <button className="btn btn--block btn--lg" onClick={makeTen}>
+          윗줄 채우기 (10 만들기) ⬆️
+        </button>
+      ) : (
+        <>
+          <div className="option-grid option-grid--2">
+            {options.map((o, i) => {
+              const n = Number(o.label);
+              let cls = 'option option--num';
+              if (picked === n) cls += o.correct ? ' option--correct' : ' option--wrong';
+              else if (phase === 'answered' && o.correct) cls += ' option--correct';
+              return (
+                <button key={i} className={cls} onClick={() => choose(n)}>
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+          {phase === 'answered' && (
+            <Feedback good>
+              10 + {bottomCount} = {total} 🎉
+            </Feedback>
+          )}
+          {picked != null && phase !== 'answered' && (
+            <Feedback good={false}>다시 세어볼까요? 🤔</Feedback>
+          )}
+          <button
+            className="btn btn--block btn--lg"
+            disabled={phase !== 'answered'}
+            onClick={advance}
+          >
+            {isLast ? '완료하기 🎉' : '다음 문제 →'}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ActivityRenderer(props: RProps) {
   switch (props.activity.type) {
+    case 'tenframe':
+      return <TenFrameActivity {...props} />;
     case 'matching':
       return <MatchingActivity {...props} />;
     case 'sequence':

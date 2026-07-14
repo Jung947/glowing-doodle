@@ -24,17 +24,33 @@ export interface Area {
 }
 
 export type ActivityType =
-  | 'choice' // 보기 중 정답 고르기
-  | 'reading' // 지문 읽고 이해·추론
+  | 'choice' // 보기 중 정답 고르기 (여러 문제 세트)
+  | 'reading' // 지문 읽고 이해·추론 (여러 문제 세트)
+  | 'tenframe' // 20칸 수배열판 "10 만들기" 덧셈
   | 'matching' // 짝 맞추기
   | 'sequence' // 순서·규칙 맞추기
   | 'memory' // 순서 기억해 누르기
-  | 'scenario' // 상황 속 행동 선택
+  | 'scenario' // 상황 속 행동 선택 (여러 문제 세트)
   | 'checklist'; // 목표·습관 자기점검 (정답 없음)
 
 export interface Option {
   label: string;
   correct?: boolean;
+}
+
+/** One question inside a choice / reading / scenario set. */
+export interface Question {
+  prompt: string;
+  visual?: string; // emoji illustration line
+  passage?: string; // reading passage
+  options: Option[];
+  encouragement?: string; // scenario: shown after a good choice
+}
+
+/** One addition problem for the 20-frame make-ten activity. */
+export interface Sum {
+  a: number;
+  b: number;
 }
 
 export interface MatchPair {
@@ -54,15 +70,14 @@ export interface Activity {
   minutes: number;
 
   // type-specific payloads (only the relevant ones are set)
-  visual?: string; // emoji illustration line for choice/scenario
-  passage?: string; // reading
-  options?: Option[]; // choice / reading / scenario
+  questions?: Question[]; // choice / reading / scenario: an ordered set of问题
+  sums?: Sum[]; // tenframe: addition problems
   pairs?: MatchPair[]; // matching
   sequence?: string[]; // sequence: the correct order
   sequencePrompt?: string;
   memory?: number[]; // memory: order of lit cells (1-based within a 3x3 grid)
   items?: string[]; // checklist labels
-  encouragement?: string; // shown for scenario/checklist (no single right answer)
+  encouragement?: string; // shown for checklist (no single right answer)
 }
 
 export interface ChildProfile {

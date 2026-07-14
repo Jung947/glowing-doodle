@@ -238,6 +238,85 @@
   color: var(--muted);
 }
 
+/* ---------- question progress (문제 i/N) ---------- */
+.q-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.q-progress > span b {
+  color: var(--muted);
+  font-weight: 800;
+}
+.q-progress__bar {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+}
+.q-progress__bar i {
+  flex: 1;
+  height: 7px;
+  border-radius: 20px;
+  background: var(--sub);
+}
+.q-progress__bar i.filled {
+  background: var(--cog);
+}
+
+/* ---------- ten-frame (20칸 수배열판) ---------- */
+.tenframe {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--r-md);
+  background: var(--sub);
+}
+.tenframe__row {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+.tf-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 2px solid var(--hair);
+  background: var(--card);
+  transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+/* mid gap to group each 5 */
+.tf-cell:nth-child(5) {
+  margin-right: 6px;
+}
+.tf--a {
+  background: var(--cog);
+  border-color: var(--cog);
+}
+.tf--moved {
+  background: var(--sun);
+  border-color: var(--sun);
+}
+.tf--b {
+  background: var(--sun);
+  border-color: var(--sun);
+}
+.tf-eq {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.tf-eq b {
+  color: var(--cog);
+}
+.tf-op {
+  color: var(--muted);
+  margin: 0 4px;
+}
+
 /* ---------- activities ---------- */
 .prompt {
   background: var(--sub);
