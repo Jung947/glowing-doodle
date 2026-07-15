@@ -1,35 +1,51 @@
 :root {
-  /* domain identity */
-  --cog: #4c6ef5;
-  --cog-soft: #eaf0ff;
-  --cog-ink: #2746b8;
-  --noncog: #ff7a66;
-  --noncog-soft: #ffede7;
-  --noncog-ink: #c5432f;
-  --quest: #6c5ce7;
-  --quest-soft: #eeecfd;
+  /* ---- domain identity (refined, de-saturated) ---- */
+  --cog: #5866c4; /* deep periwinkle */
+  --cog-2: #6d79d4;
+  --cog-soft: #edeefb;
+  --cog-ink: #39429a;
+  --noncog: #e07a5f; /* terracotta */
+  --noncog-2: #ea8f77;
+  --noncog-soft: #fbeae2;
+  --noncog-ink: #b0533b;
+  --quest: #7a6cc9; /* muted violet */
+  --quest-2: #8e80d8;
+  --quest-soft: #eeebf8;
 
-  --sun: #ffc24b;
-  --mint: #2fbf9e;
-  --grape: #9a6de0;
-  --wrong: #f26d6d;
+  /* ---- accents ---- */
+  --gold: #d9a441;
+  --gold-soft: #f7ecd4;
+  --sage: #7ba894;
+  --grape: #8e6fc9;
+  --wrong: #d45d6a;
+  /* legacy aliases kept so existing references stay valid, now refined */
+  --sun: #d9a441;
+  --mint: #7ba894;
 
-  /* surfaces */
-  --ink: #2c2b44;
-  --muted: #8e8ca8;
-  --bg: #f5f3fb;
+  /* ---- surfaces & ink (warm neutrals) ---- */
+  --ink: #2e2a32;
+  --ink-2: #4a444e;
+  --muted: #8b8592;
+  --bg: #f4efe8; /* warm ivory */
+  --bg-2: #fbf8f3;
   --card: #ffffff;
-  --sub: #f5f3fb;
-  --hair: rgba(44, 43, 68, 0.1);
-  --shadow-sm: 0 2px 8px rgba(44, 43, 68, 0.08);
-  --shadow: 0 14px 34px -16px rgba(44, 43, 68, 0.35);
+  --sub: #f3eee7;
+  --hair: rgba(46, 42, 50, 0.09);
+  --hair-2: rgba(46, 42, 50, 0.14);
 
-  /* type scale */
-  --font: 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic',
-    system-ui, sans-serif;
+  /* ---- layered soft shadows (warm-tinted) ---- */
+  --shadow-sm: 0 1px 2px rgba(46, 42, 50, 0.05), 0 4px 12px -6px rgba(46, 42, 50, 0.12);
+  --shadow: 0 2px 4px rgba(46, 42, 50, 0.04), 0 20px 44px -22px rgba(46, 42, 50, 0.26);
+  --shadow-lg: 0 4px 10px rgba(46, 42, 50, 0.05), 0 32px 64px -24px rgba(46, 42, 50, 0.32);
 
-  --r-sm: 12px;
-  --r-md: 16px;
-  --r-lg: 20px;
-  --r-xl: 26px;
+  /* ---- type ---- */
+  --font: 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui,
+    sans-serif;
+
+  /* ---- radius ---- */
+  --r-sm: 14px;
+  --r-md: 18px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-pill: 999px;
 }
